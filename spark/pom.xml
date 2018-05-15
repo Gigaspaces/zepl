@@ -55,6 +55,7 @@
         <spark.bin.download.url>
             http://d3kbcqa49mib13.cloudfront.net/${spark.archive}-bin-without-hadoop.tgz
         </spark.bin.download.url>
+        <insightedge.version>12.3.1-SNAPSHOT</insightedge.version>
     </properties>
 
     <modules>
@@ -96,6 +97,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gigaspaces.insightedge</groupId>
+            <artifactId>insightedge-core</artifactId>
+            <version>${insightedge.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

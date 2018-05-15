@@ -56,6 +56,7 @@
 
     <!--plugin versions-->
     <plugin.shade.version>2.3</plugin.shade.version>
+    <insightedge.version>12.3.1-SNAPSHOT</insightedge.version>
   </properties>
 
   <dependencyManagement>
@@ -245,7 +246,12 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- Spark -->
+      <dependency>
+          <groupId>org.gigaspaces.insightedge</groupId>
+          <artifactId>insightedge-core</artifactId>
+          <version>${insightedge.version}</version>
+      </dependency>
+      <!-- Spark -->
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.binary.version}</artifactId>

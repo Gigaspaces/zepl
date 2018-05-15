@@ -83,6 +83,7 @@ import org.apache.zeppelin.scheduler.Scheduler;
 import org.apache.zeppelin.scheduler.SchedulerFactory;
 import org.apache.zeppelin.spark.dep.SparkDependencyContext;
 import org.apache.zeppelin.spark.dep.SparkDependencyResolver;
+import org.insightedge.spark.context.InsightEdgeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +154,8 @@ public class OldSparkInterpreter extends AbstractSparkInterpreter {
 
   private SparkShims sparkShims;
 
+  private InsightEdgeConfig ieConfig;
+
   public OldSparkInterpreter(Properties property) {
     super(property);
     out = new InterpreterOutputStream(logger);
@@ -166,7 +169,18 @@ public class OldSparkInterpreter extends AbstractSparkInterpreter {
     sparkShims.setupSparkListener(sparkUrl);
   }
 
-  public SparkContext getSparkContext() {
+  public InsightEdgeConfig getIeConfig() {
+        if (ieConfig == null) {
+            scala.Option<String> scalaNone = scala.Option.apply(null);
+            ieConfig = new InsightEdgeConfig(
+                    System.getenv("INSIGHTEDGE_SPACE_NAME"),
+                    scalaNone,
+                    scalaNone);
+        }
+        return ieConfig;
+    }
+
+    public SparkContext getSparkContext() {
     synchronized (sharedInterpreterLock) {
       if (sc == null) {
         sc = createSparkContext();
@@ -507,6 +521,9 @@ public class OldSparkInterpreter extends AbstractSparkInterpreter {
     conf = new SparkConf();
     URL[] urls = getClassloaderUrls();
 
+      // set InsightEdge config
+    org.insightedge.spark.implicits.all$.MODULE$.SparkConfExtension(conf)
+            .setInsightEdgeConfig(getIeConfig());
     // Very nice discussion about how scala compiler handle classpath
     // https://groups.google.com/forum/#!topic/scala-user/MlVwo2xCCI0
 
@@ -772,6 +789,9 @@ public class OldSparkInterpreter extends AbstractSparkInterpreter {
         binder.put("spark", sparkSession);
       }
 
+       ieConfig = getIeConfig();
+       binder.put("ieConfig", ieConfig);
+
       interpret("@transient val z = "
           + "_binder.get(\"z\").asInstanceOf[org.apache.zeppelin.spark.SparkZeppelinContext]");
       interpret("@transient val sc = "
@@ -787,6 +807,13 @@ public class OldSparkInterpreter extends AbstractSparkInterpreter {
       }
 
       interpret("import org.apache.spark.SparkContext._");
+
+        // IE
+        interpret("import org.insightedge.spark.implicits.all._");
+        interpret("import org.insightedge.spark.context.InsightEdgeConfig");
+        interpret("@transient implicit val ieConfig = " +
+                "_binder.get(\"ieConfig\")" +
+                ".asInstanceOf[org.insightedge.spark.context.InsightEdgeConfig]");
 
       if (importImplicit()) {
         if (Utils.isSpark2()) {

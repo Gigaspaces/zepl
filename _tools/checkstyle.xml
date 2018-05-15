@@ -274,10 +274,10 @@ limitations under the License.
       <property name="severity" value="warning"/>
     </module>
 
-    <module name="Indentation">
-      <!-- Checks code indentation -->
-      <property name="basicOffset" value="2"/>
-      <property name="caseIndent" value="2"/>
-    </module>
+    <!--<module name="Indentation">-->
+      <!--&lt;!&ndash; Checks code indentation &ndash;&gt;-->
+      <!--<property name="basicOffset" value="2"/>-->
+      <!--<property name="caseIndent" value="2"/>-->
+    <!--</module>-->
   </module>
 </module>
