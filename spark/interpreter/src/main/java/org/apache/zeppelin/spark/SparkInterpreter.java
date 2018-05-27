@@ -20,10 +20,7 @@ package org.apache.zeppelin.spark;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SQLContext;
-import org.apache.zeppelin.interpreter.Interpreter;
-import org.apache.zeppelin.interpreter.InterpreterContext;
-import org.apache.zeppelin.interpreter.InterpreterException;
-import org.apache.zeppelin.interpreter.InterpreterResult;
+import org.apache.zeppelin.interpreter.*;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +32,7 @@ import java.util.Properties;
  * It is the Wrapper of OldSparkInterpreter & NewSparkInterpreter.
  * Property zeppelin.spark.useNew control which one to use.
  */
-public class SparkInterpreter extends AbstractSparkInterpreter {
+public class SparkInterpreter extends AbstractSparkInterpreter implements DelegatedInterpreter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SparkInterpreter.class);
 
@@ -159,5 +156,10 @@ public class SparkInterpreter extends AbstractSparkInterpreter {
 
   public static boolean useSparkSubmit() {
     return null != System.getenv("SPARK_SUBMIT");
+  }
+
+  @Override
+  public Interpreter getInnerInterpreter() {
+    return delegation;
   }
 }
