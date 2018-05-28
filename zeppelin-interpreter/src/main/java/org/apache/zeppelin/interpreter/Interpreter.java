@@ -348,14 +348,8 @@ public abstract class Interpreter {
           }
 
           Interpreter p = intp;
-          while (true) {
-            if (p instanceof WrappedInterpreter) {
-              p = ((WrappedInterpreter) p).getInnerInterpreter();
-            } else if (p instanceof DelegatedInterpreter) {
-              p = ((DelegatedInterpreter) p).getInnerInterpreter();
-            } else {
-              break;
-            }
+          while (p instanceof WrappedInterpreter) {
+            p = ((WrappedInterpreter) p).getInnerInterpreter();
           }
           if (this == p) {
             belongsToSameNoteGroup = true;
