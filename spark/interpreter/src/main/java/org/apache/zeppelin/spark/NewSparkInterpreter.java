@@ -37,6 +37,7 @@ import org.apache.zeppelin.interpreter.WrappedInterpreter;
 import org.apache.zeppelin.interpreter.remote.RemoteEventClientWrapper;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.apache.zeppelin.spark.dep.SparkDependencyContext;
+import org.insightedge.spark.context.InsightEdgeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +72,7 @@ public class NewSparkInterpreter extends AbstractSparkInterpreter {
   private String sparkUrl;
   private SparkShims sparkShims;
 
+  private InsightEdgeConfig ieConfig;
   private static InterpreterHookRegistry hooks;
 
 
@@ -82,6 +84,17 @@ public class NewSparkInterpreter extends AbstractSparkInterpreter {
     innerInterpreterClassMap.put("2.11", "org.apache.zeppelin.spark.SparkScala211Interpreter");
   }
 
+  public InsightEdgeConfig getIeConfig() {
+    if (ieConfig == null) {
+      scala.Option<String> scalaNone = scala.Option.apply((String) null);
+      ieConfig = new InsightEdgeConfig(
+              System.getenv("INSIGHTEDGE_SPACE_NAME"),
+              scalaNone,
+              scalaNone);
+    }
+    return ieConfig;
+  }
+
   @Override
   public void open() throws InterpreterException {
     try {
@@ -89,6 +102,11 @@ public class NewSparkInterpreter extends AbstractSparkInterpreter {
       LOGGER.info("Using Scala Version: " + scalaVersion);
       setupConfForPySpark();
       SparkConf conf = new SparkConf();
+
+      // set InsightEdge config
+      org.insightedge.spark.implicits.all$.MODULE$.SparkConfExtension(conf)
+              .setInsightEdgeConfig(getIeConfig());
+
       for (Map.Entry<Object, Object> entry : getProperties().entrySet()) {
         if (!StringUtils.isBlank(entry.getValue().toString())) {
           conf.set(entry.getKey().toString(), entry.getValue().toString());
@@ -126,6 +144,18 @@ public class NewSparkInterpreter extends AbstractSparkInterpreter {
           Integer.parseInt(getProperty("zeppelin.spark.maxResult")));
       this.innerInterpreter.bind("z", z.getClass().getCanonicalName(), z,
           Lists.newArrayList("@transient"));
+
+      ieConfig = getIeConfig();
+      this.innerInterpreter.bind("ieConfig", ieConfig.getClass().getCanonicalName(), ieConfig,
+              Lists.newArrayList("@transient"));
+
+      this.innerInterpreter.interpret("import org.insightedge.spark.implicits.all._");
+      this.innerInterpreter.interpret("import org.insightedge.spark.context.InsightEdgeConfig");
+      this.innerInterpreter.interpret("import org.apache.spark.sql.insightedge.relation._");
+      this.innerInterpreter.interpret("@transient implicit val ieConfig = " +
+              "_binder.get(\"ieConfig\")" +
+              ".asInstanceOf[org.insightedge.spark.context.InsightEdgeConfig]");
+
     } catch (Exception e) {
       LOGGER.error("Fail to open SparkInterpreter", ExceptionUtils.getStackTrace(e));
       throw new InterpreterException("Fail to open SparkInterpreter", e);
