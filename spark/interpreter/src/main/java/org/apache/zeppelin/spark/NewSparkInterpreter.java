@@ -151,7 +151,6 @@ public class NewSparkInterpreter extends AbstractSparkInterpreter {
 
       this.innerInterpreter.interpret("import org.insightedge.spark.implicits.all._");
       this.innerInterpreter.interpret("import org.insightedge.spark.context.InsightEdgeConfig");
-      this.innerInterpreter.interpret("import org.apache.spark.sql.insightedge.relation._");
       this.innerInterpreter.interpret("@transient implicit val ieConfig = " +
               "_binder.get(\"ieConfig\")" +
               ".asInstanceOf[org.insightedge.spark.context.InsightEdgeConfig]");
